@@ -1,36 +1,31 @@
 import express from 'express';
-import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
-
+import mongoose from 'mongoose';
+import userRouter from './routes/usersRoute.js';
+import postRouter from './routes/postRoutes.js';
 
 dotenv.config();
-
 const app = express();
-const port = process.env.PORT || 3000;
 
+/// Middleware to parse JSON bodies
+// This is necessary to handle JSON requests
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+const port = process.env.PORT || 3000;
 const uri = process.env.MONGO_URI; 
+
+app.use('/api/users', userRouter);
+app.use('/api/posts', postRouter);
+
 // MongoDB connection
-const client = new MongoClient(uri);
- 
-async function run() {
-  try {
-    // Connect the client to the server
-    await client.connect();
-    // Establish and verify connection
-    await client.db("mod-13").command({ ping: 1 });
+mongoose.connect(uri)
+  .then(() => {
     console.log("Connected successfully to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
- 
-run().catch(console.dir);
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err);
+  });
+
 
 
 app.listen(port, () => {
